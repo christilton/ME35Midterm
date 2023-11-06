@@ -14,7 +14,18 @@ Before running the temperature control system, ensure the following requirements
 
 - Python 3.x
 - MicroPython firmware for your target board
-- Required MicroPython libraries
+- Required MicroPython libraries:
+    - `machine`
+    - `servo`
+    - `mysecrets` (Please make sure you have a `mysecrets.py` file with `adafruitKey` and `buttoncode` variables)
+    - `time`
+    - `math`
+    - `random`
+    - `gamepad`
+    - `mqtt`
+    - `connectWifi`
+    - `requests`
+    - `asyncio`
 - Hardware setup for the servo motor and thermistor
 - `mysecrets.py` file with `adafruitKey` and `buttoncode` variables
 - `airtablesecrets.py` file with `BASE_ID`, `API_KEY`, `TABLE_ID`, and `RECORD_ID` variables
@@ -71,4 +82,4 @@ For the color detection system, you need the following:
 - Continuous color detection and differentiation between green and red colors.
 - Communication of detected colors to Airtable for remote monitoring.
 
-Generated using ChatGPT
+This README has been brought to you by ChatGPT
