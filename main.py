@@ -7,14 +7,16 @@ import time, math, random, gamepad, mqtt, connectWifi, requests, asyncio
 thermistor = ADC(0)
 myservo = PositionServo(16)
 LED = Pin(0, Pin.OUT)
-print('Initializing Servo...')
 
+print('Initializing Servo...')
 myservo.set_position(180)
 time.sleep(1)
 myservo.set_position(0)
 time.sleep(1)
 myservo.set_position(90)
+
 pad = True
+
 LED.off()
 color = ('None', '#000000')
 Temps= {
@@ -66,10 +68,10 @@ def setServo(temp):
 
 
 def getTempSH(Vout):
-    # Steinhart Constants
-    A = .4775438117e-3
-    B = 3.362081803e-4
-    C = -2.539410413e-7
+    # Steinhart Constants (found using calibration)
+    A = 0.4453753592e-3
+    B = 3.159230686e-4
+    C = 1.275354883e-7
     
     
     #Get Resistance
@@ -89,9 +91,9 @@ def getTempSH(Vout):
 
 def getTempBeta(Vout):
     # Constants for the Beta value calculation
-    R0 = 10000  # Resistance at 25°C
-    Beta = 3380  # Beta value
-    T0 = 25  # Reference temperature in Celsius
+    R0 = 11000  # Resistance at 25°C
+    Beta =  5121 # Beta value
+    T0 = 22.5  # Reference temperature in Celsius
 
     Rt = (10000*Vout)/(3.3 - Vout)
     
@@ -102,19 +104,16 @@ def getTempBeta(Vout):
     return TempC,TempF
 
 
-MQTTConnect()
-
-
 async def update_temperature(Temps,temp):
     while True:
         adcval = thermistor.read_u16() * (3.3 / 65535)
-        TempC, TempF = getTempBeta(adcval)
+        TempC, TempF = getTempSH(adcval)
         #setServo(TempF)
         
         # Store the temperature values in the dictionary
         Temps['TempC'] = TempC
         Temps['TempF'] = TempF
-        print(Temps,temp)
+        print(Temps)
         temp[0] = True
         await asyncio.sleep(10)  # Update temperature every 30 seconds
 
@@ -151,7 +150,9 @@ async def update_adafruit(Temps, unit, colorname, client, color,temp):
 
 async def pull_airtable(colorname):
     while True:
+        #print('getting')
         response = requests.get(endpoint, headers=headers)
+        #print('got')
         colorname[0] = response.json()['fields']['Color Name']
         #print('Actual colorname:',colorname)
         await asyncio.sleep(1)  # Pull from Airtable as fast as possible
@@ -185,6 +186,7 @@ async def check_gamepad(Temps,buttonseq,servomode):
         await asyncio.sleep(.1)  # Check gamepad as fast as possible
         
 LED.on()
+MQTTConnect()
 try:
     loop = asyncio.get_event_loop()
     loop.create_task(update_temperature(Temps,temp))
